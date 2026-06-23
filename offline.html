@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2a140a">
+  <title>Offline - Pickled Onion</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg-top: #2a140a;
+      --bg-bottom: #080302;
+      --cream: #fff4d4;
+      --muted: rgba(255, 240, 225, 0.72);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 1.5rem;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--cream);
+      background:
+        radial-gradient(circle at 50% 18%, rgba(218, 137, 61, 0.26), transparent 32%),
+        linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+    }
+
+    main {
+      width: min(34rem, 100%);
+      padding: 1.5rem;
+      border: 1px solid rgba(255, 202, 142, 0.18);
+      border-radius: 1.2rem;
+      background: rgba(38, 14, 8, 0.72);
+    }
+
+    h1 {
+      margin: 0 0 0.75rem;
+      font-size: clamp(1.8rem, 8vw, 3.4rem);
+      line-height: 1;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    a {
+      display: inline-flex;
+      margin-top: 1rem;
+      color: var(--cream);
+      text-decoration-color: rgba(255, 244, 212, 0.42);
+      text-underline-offset: 0.22em;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Offline</h1>
+    <p>This page has not been saved on this device yet. Reconnect once, open it again, and it will be available for the next offline launch.</p>
+    <a href="/">Back to Pickled Onion</a>
+  </main>
+</body>
+</html>

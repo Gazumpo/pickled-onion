@@ -1,0 +1,1729 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2a140a">
+  <meta name="application-name" content="Pickled Onion">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Pickled Onion">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="msapplication-TileColor" content="#2a140a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <title>Pickled Onion</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Sacramento&family=Space+Grotesk:wght@400;500;700&display=swap");
+
+    :root {
+      color-scheme: dark;
+      --bg-top: #2a140a;
+      --bg-bottom: #080302;
+      --glow: rgba(255, 214, 158, 0.22);
+      --cream: #fff4d4;
+      --page-text: #fff5e7;
+      --muted: rgba(255, 240, 225, 0.72);
+      --panel: rgba(38, 14, 8, 0.58);
+      --panel-border: rgba(255, 202, 142, 0.18);
+      --scene-veil: 0.12;
+      --hero-overlay-opacity: 1;
+      --hero-overlay-shift: 0px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      width: 100%;
+      min-height: 100%;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      position: relative;
+      font-family: "Space Grotesk", sans-serif;
+      color: var(--page-text);
+      background:
+        radial-gradient(circle at 50% 18%, rgba(218, 137, 61, 0.26), transparent 32%),
+        radial-gradient(circle at 50% 120%, rgba(255, 170, 79, 0.13), transparent 38%),
+        linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.04), transparent 18%),
+        radial-gradient(circle at 78% 28%, rgba(255, 214, 158, 0.05), transparent 20%),
+        radial-gradient(circle at 65% 80%, rgba(255, 214, 158, 0.03), transparent 24%);
+      mix-blend-mode: screen;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(7, 1, 0, 0.08), rgba(7, 1, 0, 0.48)),
+        radial-gradient(circle at 50% 10%, rgba(255, 32, 168, 0.14), transparent 36%);
+      opacity: var(--scene-veil);
+      pointer-events: none;
+      z-index: 2;
+      transition: opacity 180ms linear;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+      z-index: 1;
+    }
+
+    .page {
+      position: relative;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-end;
+      padding: clamp(1.25rem, 3vw, 2rem);
+    }
+
+    .hero-overlay {
+      pointer-events: auto;
+      width: min(30rem, 100%);
+      padding: 1.1rem 1.2rem 1.15rem;
+      border: 1px solid rgba(255, 182, 231, 0.18);
+      border-radius: 1.4rem;
+      background: linear-gradient(180deg, rgba(30, 9, 9, 0.54), rgba(30, 9, 9, 0.22));
+      backdrop-filter: blur(14px);
+      box-shadow: 0 1.2rem 3rem rgba(0, 0, 0, 0.24);
+      opacity: var(--hero-overlay-opacity);
+      transform: translate3d(0, var(--hero-overlay-shift), 0);
+    }
+
+    .hero-overlay--minimal {
+      width: auto;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      backdrop-filter: none;
+      box-shadow: none;
+    }
+
+    .hero-kicker,
+    .section-kicker {
+      margin: 0 0 0.65rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255, 190, 235, 0.88);
+    }
+
+    .hero-copy {
+      margin: 0;
+      font-size: clamp(0.98rem, 1.15vw, 1.08rem);
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 1rem;
+    }
+
+    .hero-link,
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 2.5rem;
+      padding: 0.65rem 1rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 191, 237, 0.24);
+      color: var(--page-text);
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      background: rgba(255, 88, 205, 0.12);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    }
+
+    .hero-link {
+      min-height: 2.2rem;
+      padding: 0.55rem 0.95rem;
+      font-size: 0.84rem;
+    }
+
+    .pill {
+      background: rgba(255, 221, 183, 0.08);
+      color: rgba(255, 239, 221, 0.82);
+    }
+
+    .content-section {
+      min-height: 100vh;
+      padding: clamp(1.25rem, 3vw, 2rem);
+      display: flex;
+      align-items: center;
+      pointer-events: auto;
+    }
+
+    .section-shell {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      padding: clamp(1.4rem, 4vw, 3rem);
+      border-radius: 2rem;
+      border: 1px solid var(--panel-border);
+      background:
+        linear-gradient(180deg, rgba(49, 18, 11, 0.78), rgba(16, 6, 4, 0.72)),
+        radial-gradient(circle at top right, rgba(255, 58, 181, 0.08), transparent 28%);
+      backdrop-filter: blur(18px);
+      box-shadow:
+        0 2rem 4rem rgba(0, 0, 0, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .section-shell--intro {
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .section-shell--simple {
+      display: grid;
+      gap: 1.25rem;
+      max-width: 760px;
+    }
+
+    .section-shell--grid {
+      display: grid;
+      gap: 2rem;
+      grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    }
+
+    .section-shell--cta {
+      display: grid;
+      gap: 1.6rem;
+      align-items: start;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    }
+
+    .section-title {
+      margin: 0;
+      max-width: 13ch;
+      font-size: clamp(2.2rem, 6vw, 5.4rem);
+      line-height: 0.96;
+      letter-spacing: -0.05em;
+    }
+
+    .section-lede {
+      margin: 0;
+      max-width: 42rem;
+      font-size: clamp(1rem, 1.45vw, 1.2rem);
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    .stat-row,
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+
+    .stat-chip {
+      padding: 0.8rem 1rem;
+      border-radius: 1.1rem;
+      border: 1px solid rgba(255, 207, 170, 0.16);
+      background: rgba(255, 255, 255, 0.045);
+    }
+
+    .stat-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(255, 195, 228, 0.82);
+      margin-bottom: 0.28rem;
+    }
+
+    .stat-value {
+      display: block;
+      font-size: 1rem;
+      color: rgba(255, 242, 232, 0.86);
+    }
+
+    .section-side-copy {
+      display: grid;
+      align-content: start;
+      gap: 1rem;
+    }
+
+    .eyebrow-title {
+      margin: 0;
+      font-size: clamp(1.8rem, 4vw, 3.2rem);
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .feature-card,
+    .note-card {
+      padding: 1.2rem;
+      border-radius: 1.4rem;
+      border: 1px solid rgba(255, 211, 176, 0.14);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .feature-card h3,
+    .note-card h3 {
+      margin: 0 0 0.55rem;
+      font-size: 1.08rem;
+    }
+
+    .feature-card p,
+    .note-card p,
+    .section-body {
+      margin: 0;
+      line-height: 1.65;
+      color: var(--muted);
+    }
+
+    .note-stack {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .footer-line {
+      margin: 0;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      color: rgba(255, 239, 221, 0.62);
+    }
+
+    .link-list {
+      display: grid;
+      gap: 0.55rem;
+      width: 100%;
+      max-width: 34rem;
+      margin-inline: auto;
+    }
+
+    .link-card {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.25rem 0.7rem;
+      min-height: 2.6rem;
+      padding: 0.65rem 0.85rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(255, 211, 176, 0.14);
+      background: rgba(255, 255, 255, 0.055);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      color: var(--page-text);
+      text-decoration: none;
+      transition:
+        background 160ms ease,
+        border-color 160ms ease,
+        transform 160ms ease;
+    }
+
+    .link-card:hover,
+    .link-card:focus-visible {
+      border-color: rgba(255, 199, 232, 0.36);
+      background: rgba(255, 255, 255, 0.085);
+      transform: translateY(-1px);
+    }
+
+    .link-card:focus-visible {
+      outline: 2px solid rgba(255, 199, 232, 0.42);
+      outline-offset: 2px;
+    }
+
+    .link-card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .link-card-description {
+      min-width: 0;
+      font-size: 0.86rem;
+      line-height: 1.35;
+      color: rgba(255, 190, 235, 0.8);
+    }
+
+    @media (max-width: 900px) {
+      .section-shell--grid,
+      .section-shell--cta,
+      .card-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section-title {
+        max-width: 100%;
+      }
+
+      .hero {
+        padding-bottom: 1rem;
+      }
+
+      .hero-overlay {
+        width: 100%;
+      }
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <canvas id="scene" aria-label="Interactive three dimensional pickled onion scene"></canvas>
+  <main class="page">
+    <section class="hero">
+      <div class="hero-overlay hero-overlay--minimal">
+        <div class="hero-actions">
+          <a class="hero-link" href="#content-start">Scroll into the site</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section" id="content-start">
+      <div class="section-shell section-shell--simple">
+        <div class="link-list" id="homepage-links"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="links.js"></script>
+  <script>
+    const linksContainer = document.getElementById("homepage-links");
+
+    function renderLinks(links) {
+      linksContainer.replaceChildren();
+
+      links
+        .filter((link) => link && link.title && link.url)
+        .forEach((link) => {
+          const card = document.createElement("a");
+          const title = document.createElement("span");
+          const description = document.createElement("span");
+
+          card.className = "link-card";
+          card.href = link.url;
+          title.className = "link-card-title";
+          title.textContent = link.title;
+          description.className = "link-card-description";
+          description.textContent = link.description || "";
+
+          card.append(title);
+          if (description.textContent) {
+            card.append(description);
+          }
+          linksContainer.append(card);
+        });
+    }
+
+    renderLinks(Array.isArray(window.PICKLED_LINKS) ? window.PICKLED_LINKS : []);
+  </script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/service-worker.js").catch((error) => {
+          console.warn("Service worker registration failed", error);
+        });
+      });
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from "three";
+
+    const canvas = document.getElementById("scene");
+    const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    canvas.style.touchAction = coarsePointer ? "pan-y" : "none";
+    const lowPower =
+      coarsePointer ||
+      reducedMotion ||
+      (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 6) ||
+      (navigator.deviceMemory && navigator.deviceMemory <= 6);
+    const pixelRatioCap = lowPower ? 1 : 1.35;
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: !lowPower,
+      alpha: false,
+      powerPreference: "high-performance",
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioCap));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x080302, 1);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 0.96;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x1a0c05, 0.042);
+
+    const camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.1, 140);
+    const yawRig = new THREE.Group();
+    const pitchRig = new THREE.Group();
+    yawRig.add(pitchRig);
+    pitchRig.add(camera);
+    scene.add(yawRig);
+    yawRig.position.set(0, 0.15, 2.2);
+    pitchRig.rotation.x = -0.1;
+
+    const jarRadius = 8.8;
+    const jarHeight = 19.5;
+    const liquidTop = 6.9;
+    const liquidBottom = -8.15;
+    const onionCount = lowPower ? 8 : 10;
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    const dragPlane = new THREE.Plane();
+    const tempPoint = new THREE.Vector3();
+    const tempVecA = new THREE.Vector3();
+    const tempVecB = new THREE.Vector3();
+    const tempVecC = new THREE.Vector3();
+    const tempVecD = new THREE.Vector3();
+    const tempVecE = new THREE.Vector3();
+    const motion = {
+      keys: Object.create(null),
+      yaw: 0,
+      pitch: -0.1,
+      lookActive: false,
+      dragging: null,
+      pointerDownOnion: null,
+      activePointerId: null,
+      lastScreen: new THREE.Vector2(),
+      lastPointer: new THREE.Vector2(),
+      pointerTravel: 0,
+      hoveredOnion: null,
+      velocity: new THREE.Vector3(),
+      started: false,
+    };
+    const rootStyle = document.documentElement.style;
+    const scrollState = {
+      y: window.scrollY,
+      viewport: window.innerHeight,
+      heroProgress: 0,
+      contentProgress: 0,
+    };
+
+    const onions = [];
+    const interactiveMeshes = [];
+    const floatingSheets = [];
+    const bubbles = [];
+    let titleRig = null;
+    let titleFace = null;
+    let titleMaterial = null;
+    let titleHalo = null;
+    let titleLight = null;
+    let titleFitScale = 1;
+
+    function updateScrollState() {
+      scrollState.y = window.scrollY;
+      scrollState.viewport = window.innerHeight;
+      const heroDistance = Math.max(scrollState.viewport * 1.1, 1);
+      scrollState.heroProgress = THREE.MathUtils.clamp(scrollState.y / heroDistance, 0, 1);
+      scrollState.contentProgress = THREE.MathUtils.clamp(
+        (scrollState.y - scrollState.viewport * 0.55) / (scrollState.viewport * 1.95),
+        0,
+        1
+      );
+      rootStyle.setProperty("--scene-veil", (0.12 + scrollState.contentProgress * 0.46).toFixed(3));
+      rootStyle.setProperty("--hero-overlay-opacity", Math.max(0, 1 - scrollState.heroProgress * 1.35).toFixed(3));
+      rootStyle.setProperty("--hero-overlay-shift", `${(-scrollState.heroProgress * 40).toFixed(1)}px`);
+    }
+
+    updateScrollState();
+
+    const backgroundSphere = new THREE.Mesh(
+      new THREE.SphereGeometry(55, 24, 18),
+      new THREE.MeshBasicMaterial({
+        color: 0x170905,
+        side: THREE.BackSide,
+      })
+    );
+    scene.add(backgroundSphere);
+
+    const ambient = new THREE.HemisphereLight(0xfff0bf, 0x1e0d04, 1.5);
+    scene.add(ambient);
+
+    const warmKey = new THREE.PointLight(0xffd59c, 10, 30, 2);
+    warmKey.position.set(4.2, 8.4, 5.4);
+    scene.add(warmKey);
+
+    const fillLight = new THREE.PointLight(0xf1a75a, 7, 28, 2);
+    fillLight.position.set(-6.4, -1.8, -2.8);
+    scene.add(fillLight);
+
+    const rimLight = new THREE.SpotLight(0xfff1cc, 15, 46, Math.PI / 4, 0.72, 1.4);
+    rimLight.position.set(0, 10.4, 0.6);
+    rimLight.target.position.set(0, -1.8, 0);
+    scene.add(rimLight, rimLight.target);
+
+    const shaftGeometry = new THREE.CylinderGeometry(0.85, 2.8, 18, 18, 1, true);
+    const shaftMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffbe69,
+      transparent: true,
+      opacity: 0.03,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+    });
+    const lightShaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
+    lightShaft.position.set(0, 4, 0);
+    scene.add(lightShaft);
+
+    function createJarProfile(scale = 1, top = jarHeight * 0.5) {
+      return [
+        new THREE.Vector2(7.05 * scale, -9.2),
+        new THREE.Vector2(7.55 * scale, -9.0),
+        new THREE.Vector2(8.05 * scale, -8.35),
+        new THREE.Vector2(8.55 * scale, -6.4),
+        new THREE.Vector2(8.9 * scale, -1.8),
+        new THREE.Vector2(8.85 * scale, 3.1),
+        new THREE.Vector2(8.5 * scale, 6.4),
+        new THREE.Vector2(8.15 * scale, 8.0),
+        new THREE.Vector2(7.8 * scale, top),
+      ];
+    }
+
+    const jarWall = new THREE.Mesh(
+      new THREE.LatheGeometry(createJarProfile(1), 56),
+      new THREE.MeshPhongMaterial({
+        color: 0xf5dfc2,
+        transparent: true,
+        opacity: 0.13,
+        specular: 0xfff8e1,
+        shininess: 100,
+        side: THREE.DoubleSide,
+      })
+    );
+    scene.add(jarWall);
+
+    const jarBase = new THREE.Mesh(
+      new THREE.CircleGeometry(7.18, 48),
+      new THREE.MeshPhongMaterial({
+        color: 0xe3c8a8,
+        transparent: true,
+        opacity: 0.1,
+        specular: 0xfff1ce,
+        shininess: 90,
+      })
+    );
+    jarBase.rotation.x = -Math.PI / 2;
+    jarBase.position.y = -9.15;
+    scene.add(jarBase);
+
+    const mouthRing = new THREE.Mesh(
+      new THREE.TorusGeometry(7.86, 0.16, 12, 56),
+      new THREE.MeshPhongMaterial({
+        color: 0xf8e8c9,
+        transparent: true,
+        opacity: 0.22,
+        specular: 0xfff7e3,
+        shininess: 100,
+      })
+    );
+    mouthRing.rotation.x = Math.PI / 2;
+    mouthRing.position.y = 9.76;
+    scene.add(mouthRing);
+
+    const shoulderRing = mouthRing.clone();
+    shoulderRing.scale.setScalar(1.1);
+    shoulderRing.position.y = 6.7;
+    scene.add(shoulderRing);
+
+    const lid = new THREE.Mesh(
+      new THREE.CylinderGeometry(8.02, 8.18, 0.96, 48),
+      new THREE.MeshStandardMaterial({
+        color: 0x7a5e34,
+        roughness: 0.35,
+        metalness: 0.7,
+        emissive: 0x1f1208,
+        emissiveIntensity: 0.18,
+      })
+    );
+    lid.position.y = 10.35;
+    scene.add(lid);
+
+    const liquidBody = new THREE.Mesh(
+      new THREE.LatheGeometry(createJarProfile(0.94, liquidTop), 56),
+      new THREE.MeshPhongMaterial({
+        color: 0x8a4918,
+        transparent: true,
+        opacity: 0.28,
+        specular: 0xffcf89,
+        shininess: 45,
+        side: THREE.DoubleSide,
+      })
+    );
+    liquidBody.position.y = 0.12;
+    scene.add(liquidBody);
+
+    const surfaceGeometry = new THREE.CircleGeometry(7.55, 40);
+    const liquidSurface = new THREE.Mesh(
+      surfaceGeometry,
+      new THREE.MeshPhongMaterial({
+        color: 0xc97634,
+        transparent: true,
+        opacity: 0.38,
+        specular: 0xffd793,
+        shininess: 65,
+        side: THREE.DoubleSide,
+      })
+    );
+    liquidSurface.rotation.x = -Math.PI / 2;
+    liquidSurface.position.y = liquidTop;
+    scene.add(liquidSurface);
+
+    function createGlowTexture(colors) {
+      const size = 256;
+      const c = document.createElement("canvas");
+      c.width = c.height = size;
+      const g = c.getContext("2d");
+      const radial = g.createRadialGradient(size * 0.5, size * 0.5, 0, size * 0.5, size * 0.5, size * 0.5);
+      for (const stop of colors) {
+        radial.addColorStop(stop[0], stop[1]);
+      }
+      g.fillStyle = radial;
+      g.fillRect(0, 0, size, size);
+      const texture = new THREE.CanvasTexture(c);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      return texture;
+    }
+
+    const particleTexture = createGlowTexture([
+      [0, "rgba(255,255,255,1)"],
+      [0.24, "rgba(255,244,215,0.98)"],
+      [0.55, "rgba(240,185,114,0.3)"],
+      [1, "rgba(240,185,114,0)"],
+    ]);
+
+    function createNeonTextCanvas(text, drawFn, options = {}) {
+      const font = '390px "Sacramento", cursive';
+      const paddingX = options.paddingX ?? 340;
+      const paddingY = options.paddingY ?? 280;
+      const alphaFloor = options.alphaFloor ?? 0;
+      const trimPaddingX = options.trimPaddingX ?? options.trimPadding ?? 0;
+      const trimPaddingY = options.trimPaddingY ?? options.trimPadding ?? 0;
+
+      const measureCanvas = document.createElement("canvas");
+      const measureCtx = measureCanvas.getContext("2d");
+      measureCtx.font = font;
+      const metrics = measureCtx.measureText(text);
+      const textWidth = Math.ceil(metrics.actualBoundingBoxLeft + metrics.actualBoundingBoxRight);
+      const textHeight = Math.ceil(metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent);
+
+      const signCanvas = document.createElement("canvas");
+      signCanvas.width = textWidth + paddingX * 2;
+      signCanvas.height = textHeight + paddingY * 2;
+      const ctx = signCanvas.getContext("2d");
+      const drawX = paddingX + metrics.actualBoundingBoxLeft;
+      const drawY = paddingY + metrics.actualBoundingBoxAscent;
+
+      ctx.clearRect(0, 0, signCanvas.width, signCanvas.height);
+      ctx.textAlign = "left";
+      ctx.textBaseline = "alphabetic";
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.font = font;
+      drawFn(ctx, drawX, drawY);
+
+      if (alphaFloor > 0) {
+        const image = ctx.getImageData(0, 0, signCanvas.width, signCanvas.height);
+        const pixels = image.data;
+        for (let i = 0; i < pixels.length; i += 4) {
+          if (pixels[i + 3] <= alphaFloor) {
+            pixels[i] = 0;
+            pixels[i + 1] = 0;
+            pixels[i + 2] = 0;
+            pixels[i + 3] = 0;
+          }
+        }
+        ctx.putImageData(image, 0, 0);
+      }
+
+      const trimImage = ctx.getImageData(0, 0, signCanvas.width, signCanvas.height);
+      const trimPixels = trimImage.data;
+      let minX = signCanvas.width;
+      let minY = signCanvas.height;
+      let maxX = -1;
+      let maxY = -1;
+
+      for (let y = 0; y < signCanvas.height; y += 1) {
+        for (let x = 0; x < signCanvas.width; x += 1) {
+          const alpha = trimPixels[(y * signCanvas.width + x) * 4 + 3];
+          if (alpha <= alphaFloor) {
+            continue;
+          }
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
+
+      let finalCanvas = signCanvas;
+      if (maxX >= minX && maxY >= minY) {
+        const cropX = Math.max(0, minX - trimPaddingX);
+        const cropY = Math.max(0, minY - trimPaddingY);
+        const cropWidth = Math.min(signCanvas.width - cropX, maxX - minX + 1 + trimPaddingX * 2);
+        const cropHeight = Math.min(signCanvas.height - cropY, maxY - minY + 1 + trimPaddingY * 2);
+        const croppedCanvas = document.createElement("canvas");
+        croppedCanvas.width = cropWidth;
+        croppedCanvas.height = cropHeight;
+        const croppedCtx = croppedCanvas.getContext("2d");
+        croppedCtx.drawImage(
+          signCanvas,
+          cropX,
+          cropY,
+          cropWidth,
+          cropHeight,
+          0,
+          0,
+          cropWidth,
+          cropHeight
+        );
+        finalCanvas = croppedCanvas;
+      }
+
+      const texture = new THREE.CanvasTexture(finalCanvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.generateMipmaps = false;
+      texture.needsUpdate = true;
+      return {
+        aspect: finalCanvas.width / finalCanvas.height,
+        texture,
+      };
+    }
+
+    function createNeonCoreTexture(text) {
+      return createNeonTextCanvas(
+        text,
+        (ctx, drawX, drawY) => {
+          ctx.shadowColor = "rgba(255, 115, 232, 0.7)";
+          ctx.shadowBlur = 10;
+          ctx.strokeStyle = "#ff45d8";
+          ctx.lineWidth = 24;
+          ctx.strokeText(text, drawX, drawY);
+
+          ctx.strokeStyle = "#ff74e7";
+          ctx.lineWidth = 16;
+          ctx.strokeText(text, drawX, drawY);
+
+          ctx.fillStyle = "#ff96f0";
+          ctx.shadowColor = "rgba(255, 138, 237, 0.78)";
+          ctx.shadowBlur = 16;
+          ctx.fillText(text, drawX, drawY);
+        },
+        {
+          alphaFloor: 2,
+          trimPaddingX: 6,
+          trimPaddingY: 32,
+        }
+      );
+    }
+
+    function createNeonGlowTexture(text) {
+      return createNeonTextCanvas(
+        text,
+        (ctx, drawX, drawY) => {
+          ctx.strokeStyle = "rgba(255, 24, 199, 0.06)";
+          ctx.lineWidth = 146;
+          ctx.shadowColor = "rgba(255, 24, 199, 0.9)";
+          ctx.shadowBlur = 168;
+          ctx.strokeText(text, drawX, drawY);
+
+          ctx.strokeStyle = "rgba(255, 62, 221, 0.08)";
+          ctx.lineWidth = 112;
+          ctx.shadowColor = "rgba(255, 62, 221, 0.82)";
+          ctx.shadowBlur = 118;
+          ctx.strokeText(text, drawX, drawY);
+
+          ctx.strokeStyle = "rgba(255, 109, 234, 0.1)";
+          ctx.lineWidth = 82;
+          ctx.shadowColor = "rgba(255, 109, 234, 0.68)";
+          ctx.shadowBlur = 72;
+          ctx.strokeText(text, drawX, drawY);
+
+          ctx.fillStyle = "rgba(255, 120, 236, 0.12)";
+          ctx.shadowColor = "rgba(255, 120, 236, 0.62)";
+          ctx.shadowBlur = 48;
+          ctx.fillText(text, drawX, drawY);
+        },
+        {
+          paddingX: 620,
+          paddingY: 520,
+          alphaFloor: 14,
+          trimPaddingX: 20,
+          trimPaddingY: 148,
+        }
+      );
+    }
+
+    if (document.fonts?.load) {
+      try {
+        await Promise.race([
+          document.fonts.load('300px "Sacramento"'),
+          new Promise((resolve) => setTimeout(resolve, 1200)),
+        ]);
+      } catch {
+        // A cached or fallback font is good enough for offline launches.
+      }
+    }
+
+    const titleCoreTexture = createNeonCoreTexture("PickledOnion.dev");
+    const titleGlowTexture = createNeonGlowTexture("PickledOnion.dev");
+
+    titleRig = new THREE.Group();
+    titleRig.position.set(0, 1.1, -2.7);
+
+    titleFace = new THREE.Group();
+    titleMaterial = new THREE.MeshBasicMaterial({
+      map: titleCoreTexture.texture,
+      transparent: true,
+      opacity: 1,
+      alphaTest: 0.3,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+    const titleSignHeight = 2.85;
+    const titleSignGeometry = new THREE.PlaneGeometry(
+      titleSignHeight * titleCoreTexture.aspect,
+      titleSignHeight
+    );
+    const titleSign = new THREE.Mesh(titleSignGeometry, titleMaterial);
+
+    titleHalo = new THREE.Mesh(
+      titleSignGeometry.clone(),
+      new THREE.MeshBasicMaterial({
+        map: titleGlowTexture.texture,
+        transparent: true,
+        opacity: 0.24,
+        alphaTest: 0.02,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      })
+    );
+    titleHalo.position.z = -0.05;
+    titleHalo.scale.set(1.05, 1.05, 1);
+
+    titleLight = new THREE.PointLight(0xff2ecf, 8.2, 20, 1.9);
+    titleLight.position.set(0, 0.05, 1.4);
+
+    titleFace.add(titleHalo);
+    titleFace.add(titleSign);
+    titleFace.add(titleLight);
+    titleRig.add(titleFace);
+    scene.add(titleRig);
+
+    function updateTitleFitScale() {
+      if (!titleRig) {
+        return;
+      }
+      camera.getWorldPosition(tempVecA);
+      titleRig.getWorldPosition(tempVecB);
+      const titleDistance = Math.max(0.001, tempVecA.distanceTo(tempVecB));
+      const visibleHeight = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5)) * titleDistance;
+      const visibleWidth = visibleHeight * camera.aspect;
+      const baseTitleWidth = titleSignHeight * titleCoreTexture.aspect;
+      titleFitScale = THREE.MathUtils.clamp((visibleWidth * 0.8) / baseTitleWidth, 0.34, 1);
+    }
+
+    updateTitleFitScale();
+
+    const causticTexture = (() => {
+      const size = 512;
+      const c = document.createElement("canvas");
+      c.width = c.height = size;
+      const g = c.getContext("2d");
+      g.fillStyle = "rgba(0,0,0,0)";
+      g.fillRect(0, 0, size, size);
+      for (let i = 0; i < 24; i += 1) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const radius = 48 + Math.random() * 120;
+        const grad = g.createRadialGradient(x, y, 0, x, y, radius);
+        grad.addColorStop(0, "rgba(255,248,227,0.22)");
+        grad.addColorStop(0.3, "rgba(255,212,146,0.14)");
+        grad.addColorStop(1, "rgba(255,212,146,0)");
+        g.fillStyle = grad;
+        g.beginPath();
+        g.arc(x, y, radius, 0, Math.PI * 2);
+        g.fill();
+      }
+      g.strokeStyle = "rgba(255,246,218,0.16)";
+      g.lineWidth = 6;
+      for (let i = 0; i < 30; i += 1) {
+        g.beginPath();
+        const startX = Math.random() * size;
+        const startY = Math.random() * size;
+        g.moveTo(startX, startY);
+        g.bezierCurveTo(
+          startX + (Math.random() - 0.5) * 140,
+          startY + (Math.random() - 0.5) * 140,
+          startX + (Math.random() - 0.5) * 140,
+          startY + (Math.random() - 0.5) * 140,
+          startX + (Math.random() - 0.5) * 160,
+          startY + (Math.random() - 0.5) * 160
+        );
+        g.stroke();
+      }
+      const texture = new THREE.CanvasTexture(c);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.colorSpace = THREE.SRGBColorSpace;
+      return texture;
+    })();
+
+    function addCausticSheet(y, scale, opacity) {
+      const material = new THREE.MeshBasicMaterial({
+        map: causticTexture.clone(),
+        transparent: true,
+        opacity,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        side: THREE.DoubleSide,
+      });
+      material.map.repeat.set(1.4, 1.4);
+      const mesh = new THREE.Mesh(new THREE.CircleGeometry(scale, 40), material);
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.y = y;
+      scene.add(mesh);
+      floatingSheets.push({
+        baseOpacity: opacity,
+        mesh,
+        speed: 0.03 + Math.random() * 0.025,
+        drift: (Math.random() - 0.5) * 0.2,
+        phase: Math.random() * Math.PI * 2,
+      });
+    }
+
+    addCausticSheet(5.6, 7.2, 0.05);
+    addCausticSheet(-1.1, 8.4, 0.035);
+
+    function createParticleField(count, radius, height, opacity) {
+      const geometry = new THREE.BufferGeometry();
+      const positions = new Float32Array(count * 3);
+      const sizes = new Float32Array(count);
+      for (let i = 0; i < count; i += 1) {
+        const angle = Math.random() * Math.PI * 2;
+        const spread = Math.sqrt(Math.random()) * radius;
+        positions[i * 3] = Math.cos(angle) * spread;
+        positions[i * 3 + 1] = liquidBottom + Math.random() * height;
+        positions[i * 3 + 2] = Math.sin(angle) * spread;
+        sizes[i] = 0.7 + Math.random() * 1.6;
+      }
+      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
+
+      const material = new THREE.PointsMaterial({
+        color: 0xffefcf,
+        map: particleTexture,
+        size: 0.22,
+        sizeAttenuation: true,
+        transparent: true,
+        opacity,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      });
+      const points = new THREE.Points(geometry, material);
+      scene.add(points);
+      bubbles.push({
+        baseOpacity: opacity,
+        points,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.06 + Math.random() * 0.06,
+      });
+    }
+
+    createParticleField(lowPower ? 120 : 180, 7.2, 15.2, 0.11);
+    createParticleField(lowPower ? 60 : 90, 5.8, 14.6, 0.06);
+
+    function createOnionGeometry() {
+      const geometry = new THREE.SphereGeometry(1, 28, 24);
+      const position = geometry.attributes.position;
+      const vertex = new THREE.Vector3();
+      for (let i = 0; i < position.count; i += 1) {
+        vertex.fromBufferAttribute(position, i);
+        const angle = Math.atan2(vertex.z, vertex.x);
+        const y = vertex.y;
+        const topMix = THREE.MathUtils.smoothstep(y, 0.06, 1);
+        const bottomMix = THREE.MathUtils.smoothstep(-y, 0.04, 1);
+        const taper = THREE.MathUtils.lerp(1.04, 0.57, topMix);
+        const bulge = THREE.MathUtils.lerp(1.02, 1.28, bottomMix);
+        const lobes = 1 + Math.sin(angle * 6) * (1 - Math.abs(y) * 0.85) * 0.08 + Math.cos(angle * 10 + y * 5) * 0.025;
+        vertex.x *= taper * bulge * lobes;
+        vertex.z *= taper * bulge * lobes;
+        vertex.y *= y > 0 ? 1.16 : 0.9;
+        if (y > 0.76) {
+          vertex.x *= 0.85;
+          vertex.z *= 0.85;
+          vertex.y += 0.05;
+        }
+        if (y < -0.92) {
+          vertex.y -= 0.07;
+        }
+        position.setXYZ(i, vertex.x, vertex.y, vertex.z);
+      }
+      geometry.computeVertexNormals();
+      return geometry;
+    }
+
+    const onionGeometry = createOnionGeometry();
+
+    function createRootCluster() {
+      const group = new THREE.Group();
+      const material = new THREE.LineBasicMaterial({
+        color: 0xf4dfbd,
+        transparent: true,
+        opacity: 0.64,
+      });
+      for (let i = 0; i < 5; i += 1) {
+        const angle = (i / 5) * Math.PI * 2 + Math.random() * 0.22;
+        const rootLength = 0.22 + Math.random() * 0.12;
+        const points = [];
+        for (let step = 0; step < 4; step += 1) {
+          const t = step / 3;
+          points.push(
+            new THREE.Vector3(
+              Math.cos(angle) * (0.04 + t * 0.12) + Math.sin(step + angle) * 0.012 * t,
+              -0.98 - t * rootLength,
+              Math.sin(angle) * (0.04 + t * 0.12) + Math.cos(step * 1.3 + angle) * 0.012 * t
+            )
+          );
+        }
+        group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), material));
+      }
+      return group;
+    }
+
+    function createOnion(index) {
+      const group = new THREE.Group();
+
+      const hueShift = 0.94 + Math.random() * 0.06;
+      const shellMaterial = new THREE.MeshPhongMaterial({
+        color: new THREE.Color(0xf8efcb).multiplyScalar(hueShift),
+        specular: 0xfff7de,
+        shininess: 90,
+        emissive: 0x140803,
+        emissiveIntensity: 0.12,
+      });
+      const shell = new THREE.Mesh(onionGeometry, shellMaterial);
+      shell.castShadow = false;
+      shell.receiveShadow = false;
+      group.add(shell);
+
+      const inner = new THREE.Mesh(
+        onionGeometry,
+        new THREE.MeshPhongMaterial({
+          color: new THREE.Color(0xe2c88f).multiplyScalar(0.96 + Math.random() * 0.08),
+          transparent: true,
+          opacity: 0.14,
+          specular: 0xf2d8a8,
+          shininess: 45,
+        })
+      );
+      inner.scale.setScalar(0.82);
+      group.add(inner);
+
+      const stem = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.05, 0.11, 0.34, 10),
+        new THREE.MeshStandardMaterial({
+          color: 0x85603a,
+          roughness: 0.82,
+          metalness: 0.04,
+        })
+      );
+      stem.position.y = 1.03;
+      stem.rotation.z = (Math.random() - 0.5) * 0.38;
+      group.add(stem);
+
+      const roots = createRootCluster();
+      group.add(roots);
+
+      const halo = new THREE.Mesh(
+        new THREE.CircleGeometry(1.28, 28),
+        new THREE.MeshBasicMaterial({
+          map: particleTexture,
+          color: 0xffd699,
+          transparent: true,
+          opacity: 0.045,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+          side: THREE.DoubleSide,
+        })
+      );
+      halo.position.y = 0.02;
+      halo.lookAt(camera.position);
+      group.add(halo);
+
+      const radius = 0.72 + Math.random() * 0.34;
+      const scale = radius;
+      group.scale.setScalar(scale);
+      shell.userData.onion = group;
+      inner.userData.onion = group;
+      interactiveMeshes.push(shell, inner);
+
+      const cameraStart = new THREE.Vector3(0, 0.15, 2.2);
+      for (let attempt = 0; attempt < 24; attempt += 1) {
+        const angle = Math.random() * Math.PI * 2;
+        const ring = 4.4 + Math.random() * 3.1;
+        group.position.set(
+          Math.cos(angle) * ring,
+          THREE.MathUtils.lerp(liquidBottom + 2.6, liquidTop - 1.2, Math.random()),
+          Math.sin(angle) * ring
+        );
+        if (
+          group.position.distanceTo(cameraStart) < 5.4 ||
+          (group.position.z > -1.8 && Math.abs(group.position.x) < 3.8 && Math.abs(group.position.y - cameraStart.y) < 3.8)
+        ) {
+          continue;
+        }
+        const overlap = onions.some((other) => group.position.distanceTo(other.position) < other.userData.radius + scale * 1.9);
+        if (!overlap) {
+          break;
+        }
+      }
+      group.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+
+      group.userData = {
+        radius: scale * 0.88,
+        velocity: new THREE.Vector3(
+          (Math.random() - 0.5) * 0.12,
+          (Math.random() - 0.5) * 0.08,
+          (Math.random() - 0.5) * 0.12
+        ),
+        spin: new THREE.Vector3(
+          (Math.random() - 0.5) * 0.3,
+          (Math.random() - 0.5) * 0.3,
+          (Math.random() - 0.5) * 0.3
+        ),
+        phase: Math.random() * Math.PI * 2,
+        swirl: 0.35 + Math.random() * 0.65,
+        orbitRadius: 2.4 + Math.random() * 1.5,
+        orbitSpeed: 0.22 + Math.random() * 0.18,
+        heightOffset: (Math.random() - 0.5) * 2.2,
+        shellMaterial,
+        halo,
+        baseScale: scale,
+        boop: 0,
+      };
+
+      scene.add(group);
+      onions.push(group);
+    }
+
+    for (let i = 0; i < onionCount; i += 1) {
+      createOnion(i);
+    }
+
+    [
+      [1.5, 0.5, -2.9],
+      [3.8, 1.2, -3.8],
+      [-3.7, -0.9, -3.2],
+      [4.6, -0.3, -1.9],
+      [-4.4, 1.4, -1.8],
+      [0.8, 2.1, -4.3],
+    ].forEach((coords, index) => {
+      if (!onions[index]) {
+        return;
+      }
+      onions[index].position.set(coords[0], coords[1], coords[2]);
+      onions[index].userData.velocity.multiplyScalar(0.5);
+    });
+
+    [0.82, 0.88, 0.92].forEach((scale, index) => {
+      if (!onions[index]) {
+        return;
+      }
+      onions[index].scale.multiplyScalar(scale);
+      onions[index].userData.baseScale *= scale;
+      onions[index].userData.radius *= scale;
+    });
+
+    function containInJar(position, radius) {
+      const maxRadius = jarRadius - radius - 0.62;
+      const radial = Math.hypot(position.x, position.z);
+      if (radial > maxRadius) {
+        const scale = maxRadius / radial;
+        position.x *= scale;
+        position.z *= scale;
+      }
+      position.y = THREE.MathUtils.clamp(position.y, liquidBottom + radius + 0.3, liquidTop - radius - 0.22);
+    }
+
+    function updateSurface(time) {
+      liquidSurface.position.y = liquidTop + Math.sin(time * 1.4) * 0.05;
+      liquidSurface.rotation.x = -Math.PI / 2 + Math.cos(time * 0.8) * 0.015;
+      liquidSurface.rotation.z = Math.sin(time * 0.45) * 0.08;
+      liquidBody.rotation.y = Math.sin(time * 0.14) * 0.06;
+    }
+
+    function boopOnion(onion) {
+      onion.userData.boop = 1;
+      onion.userData.velocity.y += 0.85;
+      onion.userData.spin.x += (Math.random() - 0.5) * 1.4;
+      onion.userData.spin.y += (Math.random() - 0.5) * 1.4;
+      onion.userData.spin.z += (Math.random() - 0.5) * 1.4;
+
+      for (const other of onions) {
+        if (other === onion) {
+          continue;
+        }
+        tempVecA.copy(other.position).sub(onion.position);
+        const distance = tempVecA.length();
+        if (!distance || distance > 3.2) {
+          continue;
+        }
+        other.userData.velocity.addScaledVector(tempVecA.normalize(), 0.25 / distance);
+      }
+    }
+
+    function updateHoverState() {
+      if (motion.lookActive || motion.dragging) {
+        return;
+      }
+      motion.hoveredOnion = getIntersectedOnion();
+      canvas.style.cursor = motion.hoveredOnion ? "grab" : "";
+    }
+
+    function setPointerFromEvent(clientX, clientY, updateLastScreen = false) {
+      const rect = canvas.getBoundingClientRect();
+      pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+      if (updateLastScreen) {
+        motion.lastScreen.set(clientX, clientY);
+      }
+    }
+
+    function getIntersectedOnion() {
+      raycaster.setFromCamera(pointer, camera);
+      const hit = raycaster.intersectObjects(interactiveMeshes, false)[0];
+      return hit?.object?.userData?.onion ?? null;
+    }
+
+    function beginDrag(onion) {
+      const normal = camera.getWorldDirection(tempVecA).normalize();
+      dragPlane.setFromNormalAndCoplanarPoint(normal, onion.position);
+      raycaster.setFromCamera(pointer, camera);
+      if (!raycaster.ray.intersectPlane(dragPlane, tempPoint)) {
+        return;
+      }
+      motion.dragging = {
+        onion,
+        offset: onion.position.clone().sub(tempPoint),
+        lastPoint: onion.position.clone(),
+        lastTime: performance.now(),
+      };
+      onion.userData.shellMaterial.emissiveIntensity = 0.22;
+      onion.userData.halo.material.opacity = 0.12;
+    }
+
+    function releaseDrag() {
+      if (!motion.dragging) {
+        return;
+      }
+      const { onion } = motion.dragging;
+      onion.userData.shellMaterial.emissiveIntensity = 0.12;
+      onion.userData.halo.material.opacity = 0.045;
+      motion.dragging = null;
+    }
+
+    function updateLook(deltaX, deltaY) {
+      motion.yaw += deltaX * 0.005;
+      motion.pitch = THREE.MathUtils.clamp(motion.pitch + deltaY * 0.0045, -1.1, 1.08);
+      yawRig.rotation.y = motion.yaw;
+      pitchRig.rotation.x = motion.pitch;
+    }
+
+    canvas.addEventListener("contextmenu", (event) => event.preventDefault());
+
+    canvas.addEventListener("pointerdown", (event) => {
+      if (coarsePointer && event.pointerType !== "mouse") {
+        return;
+      }
+      motion.started = true;
+      motion.activePointerId = event.pointerId;
+      motion.pointerTravel = 0;
+      canvas.setPointerCapture(event.pointerId);
+      setPointerFromEvent(event.clientX, event.clientY, true);
+      motion.lastPointer.set(event.clientX, event.clientY);
+
+      const onion = getIntersectedOnion();
+      motion.pointerDownOnion = onion;
+      if (onion && event.button === 0) {
+        beginDrag(onion);
+        canvas.style.cursor = "grabbing";
+        return;
+      }
+
+      motion.lookActive = true;
+    });
+
+    canvas.addEventListener("pointermove", (event) => {
+      if (motion.activePointerId !== null && event.pointerId !== motion.activePointerId) {
+        return;
+      }
+
+      setPointerFromEvent(event.clientX, event.clientY);
+      motion.pointerTravel += Math.hypot(event.clientX - motion.lastPointer.x, event.clientY - motion.lastPointer.y);
+      motion.lastPointer.set(event.clientX, event.clientY);
+
+      if (motion.dragging) {
+        raycaster.setFromCamera(pointer, camera);
+        if (raycaster.ray.intersectPlane(dragPlane, tempPoint)) {
+          tempPoint.add(motion.dragging.offset);
+          containInJar(tempPoint, motion.dragging.onion.userData.radius);
+          const now = performance.now();
+          const dt = Math.max(0.016, (now - motion.dragging.lastTime) / 1000);
+          motion.dragging.onion.position.lerp(tempPoint, 0.45);
+          motion.dragging.onion.userData.velocity.copy(
+            tempVecB.copy(motion.dragging.onion.position).sub(motion.dragging.lastPoint).divideScalar(dt)
+          );
+          motion.dragging.lastPoint.copy(motion.dragging.onion.position);
+          motion.dragging.lastTime = now;
+        }
+        return;
+      }
+
+      if (motion.lookActive) {
+        updateLook(event.clientX - motion.lastScreen.x, event.clientY - motion.lastScreen.y);
+        motion.lastScreen.set(event.clientX, event.clientY);
+        canvas.style.cursor = "grabbing";
+        return;
+      }
+
+      updateHoverState();
+    });
+
+    function endPointer(event) {
+      if (motion.activePointerId !== null && event.pointerId !== motion.activePointerId) {
+        return;
+      }
+      const tappedOnion = motion.pointerTravel < 8 ? motion.dragging?.onion || motion.pointerDownOnion : null;
+      releaseDrag();
+      if (tappedOnion) {
+        boopOnion(tappedOnion);
+      }
+      motion.lookActive = false;
+      motion.pointerDownOnion = null;
+      motion.activePointerId = null;
+      updateHoverState();
+    }
+
+    canvas.addEventListener("pointerup", endPointer);
+    canvas.addEventListener("pointercancel", endPointer);
+    canvas.addEventListener("pointerleave", (event) => {
+      if (!coarsePointer) {
+        endPointer(event);
+      }
+    });
+
+    window.addEventListener("keydown", (event) => {
+      motion.keys[event.code] = true;
+    });
+
+    window.addEventListener("keyup", (event) => {
+      motion.keys[event.code] = false;
+    });
+
+    function updateCamera(dt, time) {
+      const target = tempVecA.set(
+        (motion.keys.KeyD ? 1 : 0) - (motion.keys.KeyA ? 1 : 0),
+        (motion.keys.Space ? 1 : 0) - ((motion.keys.ShiftLeft || motion.keys.ShiftRight) ? 1 : 0),
+        (motion.keys.KeyS ? 1 : 0) - (motion.keys.KeyW ? 1 : 0)
+      );
+
+      if (target.lengthSq() > 0) {
+        target.normalize();
+      }
+
+      const forward = tempVecB.set(0, 0, -1).applyQuaternion(yawRig.quaternion);
+      const right = tempVecC.set(1, 0, 0).applyQuaternion(yawRig.quaternion);
+      forward.y = 0;
+      right.y = 0;
+      forward.normalize();
+      right.normalize();
+
+      const speed = motion.keys.AltLeft || motion.keys.AltRight ? 7.4 : 4.6;
+      const nextVelocity = tempVecA
+        .set(0, 0, 0)
+        .addScaledVector(right, target.x * speed)
+        .addScaledVector(forward, -target.z * speed)
+        .setY(target.y * speed * 0.8);
+
+      motion.velocity.lerp(nextVelocity, 1 - Math.exp(-dt * 6));
+      yawRig.position.addScaledVector(motion.velocity, dt);
+      containInJar(yawRig.position, 0.4);
+
+      const bobScale = reducedMotion ? 0.2 : 1;
+      camera.position.z = 0.1 + Math.sin(time * 2.1) * 0.025 * bobScale;
+      camera.position.y = 0.02 + Math.sin(time * 1.7 + 0.6) * 0.02 * bobScale;
+    }
+
+    function resolveOnionCollisions() {
+      for (let i = 0; i < onions.length; i += 1) {
+        for (let j = i + 1; j < onions.length; j += 1) {
+          const first = onions[i];
+          const second = onions[j];
+          if (motion.dragging?.onion === first && motion.dragging?.onion === second) {
+            continue;
+          }
+          tempVecA.copy(second.position).sub(first.position);
+          const distance = tempVecA.length() || 0.0001;
+          const minDistance = first.userData.radius + second.userData.radius;
+          if (distance >= minDistance) {
+            continue;
+          }
+
+          const normal = tempVecA.divideScalar(distance);
+          const overlap = (minDistance - distance) * 0.5;
+          const draggedFirst = motion.dragging?.onion === first;
+          const draggedSecond = motion.dragging?.onion === second;
+
+          if (!draggedFirst) {
+            first.position.addScaledVector(normal, -overlap);
+          }
+          if (!draggedSecond) {
+            second.position.addScaledVector(normal, overlap);
+          }
+
+          if (!draggedFirst) {
+            first.userData.velocity.addScaledVector(normal, -overlap * 4);
+          }
+          if (!draggedSecond) {
+            second.userData.velocity.addScaledVector(normal, overlap * 4);
+          }
+        }
+      }
+    }
+
+    function animateOnions(dt, time) {
+      const contentEase = THREE.MathUtils.smootherstep(scrollState.contentProgress, 0, 1);
+      const orbitForward = tempVecD.set(0, 0, -1).applyQuaternion(yawRig.quaternion);
+      const orbitRight = tempVecE.set(1, 0, 0).applyQuaternion(yawRig.quaternion);
+      orbitForward.y = 0;
+      orbitRight.y = 0;
+      orbitForward.normalize();
+      orbitRight.normalize();
+      const orbitCenterDistance = THREE.MathUtils.lerp(4.8, 6.9, contentEase);
+      const orbitCenterX = yawRig.position.x + orbitForward.x * orbitCenterDistance;
+      const orbitCenterY = yawRig.position.y;
+      const orbitCenterZ = yawRig.position.z + orbitForward.z * orbitCenterDistance;
+      const cameraClearance = THREE.MathUtils.lerp(4.8, 5.9, contentEase);
+
+      for (const onion of onions) {
+        if (motion.dragging?.onion === onion) {
+          onion.rotation.x += onion.userData.spin.x * dt * 0.4;
+          onion.rotation.y += onion.userData.spin.y * dt * 0.4;
+          onion.rotation.z += onion.userData.spin.z * dt * 0.4;
+          continue;
+        }
+
+        const { velocity, phase, swirl, spin, radius, halo, orbitRadius, orbitSpeed, heightOffset } = onion.userData;
+        const motionFactor = (reducedMotion ? 0.45 : 1) * THREE.MathUtils.lerp(1, 0.48, contentEase);
+        const orbitAngle = time * orbitSpeed + phase;
+        const orbitHeight = THREE.MathUtils.clamp(
+          yawRig.position.y + heightOffset + Math.sin(time * 0.7 + phase) * 0.22,
+          liquidBottom + radius + 1.2,
+          liquidTop - radius - 2.1
+        );
+        const anchor = tempVecA.set(
+          orbitCenterX,
+          orbitHeight,
+          orbitCenterZ
+        );
+        anchor.addScaledVector(orbitRight, Math.cos(orbitAngle) * orbitRadius);
+        anchor.addScaledVector(orbitForward, Math.sin(orbitAngle) * orbitRadius * 0.52);
+        containInJar(anchor, radius);
+
+        const anchorPull = tempVecB.copy(anchor).sub(onion.position);
+        velocity.addScaledVector(anchorPull, dt * 0.36 * motionFactor);
+
+        const cameraOffset = tempVecC.copy(onion.position).sub(yawRig.position);
+        const cameraDistance = Math.hypot(cameraOffset.x, cameraOffset.y * 0.7, cameraOffset.z);
+        if (cameraDistance < cameraClearance && cameraDistance > 0.001) {
+          velocity.addScaledVector(cameraOffset.normalize(), dt * (cameraClearance - cameraDistance) * 1.4);
+        }
+
+        const tangent = tempVecC
+          .copy(orbitRight)
+          .multiplyScalar(-Math.sin(orbitAngle))
+          .addScaledVector(orbitForward, Math.cos(orbitAngle))
+          .setY(Math.sin(time * 0.9 + phase) * 0.06)
+          .normalize();
+        velocity.addScaledVector(tangent, dt * 0.42 * swirl * motionFactor);
+
+        velocity.x += Math.sin(time * 1.2 + phase) * 0.0026 * motionFactor;
+        velocity.y += Math.cos(time * 0.85 + phase) * 0.0018 * motionFactor;
+        velocity.z += Math.cos(time * 1.1 + phase * 1.6) * 0.0026 * motionFactor;
+        velocity.multiplyScalar(reducedMotion ? 0.98 : 0.988);
+        onion.position.addScaledVector(velocity, dt * 1.15);
+
+        const radialDistance = Math.hypot(onion.position.x, onion.position.z);
+        const maxRadius = jarRadius - radius - 0.62;
+        if (radialDistance > maxRadius) {
+          const nx = onion.position.x / radialDistance;
+          const nz = onion.position.z / radialDistance;
+          onion.position.x = nx * maxRadius;
+          onion.position.z = nz * maxRadius;
+          const bounce = tempVecC.set(nx, 0, nz);
+          velocity.addScaledVector(bounce, -velocity.dot(bounce) * 1.6);
+        }
+
+        if (onion.position.y > liquidTop - radius - 0.22) {
+          onion.position.y = liquidTop - radius - 0.22;
+          velocity.y *= -0.55;
+        } else if (onion.position.y < liquidBottom + radius + 0.3) {
+          onion.position.y = liquidBottom + radius + 0.3;
+          velocity.y *= -0.5;
+        }
+
+        onion.rotation.x += spin.x * dt * motionFactor + Math.sin(time * 0.7 + phase) * 0.002 * motionFactor;
+        onion.rotation.y += spin.y * dt * motionFactor + Math.cos(time * 0.8 + phase) * 0.0025 * motionFactor;
+        onion.rotation.z += spin.z * dt * motionFactor;
+
+        onion.userData.boop = Math.max(0, onion.userData.boop - dt * 2.4);
+        const pulse = 1 + Math.sin(time * 28) * onion.userData.boop * 0.07;
+        onion.scale.setScalar(onion.userData.baseScale * pulse);
+        halo.quaternion.copy(camera.quaternion);
+        halo.scale.setScalar(1 + Math.sin(time * 1.8 + phase) * 0.05 + onion.userData.boop * 0.18);
+        halo.material.opacity =
+          (0.045 + onion.userData.boop * 0.08 + (motion.dragging?.onion === onion ? 0.035 : 0)) *
+          THREE.MathUtils.lerp(1, 0.42, contentEase);
+      }
+
+      resolveOnionCollisions();
+    }
+
+    function animateAtmosphere(time) {
+      const drift = reducedMotion ? 0.35 : 1;
+      const contentEase = THREE.MathUtils.smootherstep(scrollState.contentProgress, 0, 1);
+      const heroEase = THREE.MathUtils.smootherstep(scrollState.heroProgress, 0, 1);
+      const atmosphereDim = THREE.MathUtils.lerp(1, 0.68, contentEase);
+      warmKey.position.x = Math.sin(time * 0.44) * 5.2 * drift;
+      warmKey.position.z = Math.cos(time * 0.35) * 5.8 * drift;
+      fillLight.position.x = Math.cos(time * 0.27 + 1.3) * 6.2 * drift;
+      fillLight.position.z = Math.sin(time * 0.31 + 0.5) * 5.4 * drift;
+      warmKey.intensity = 10 * atmosphereDim;
+      fillLight.intensity = 7 * atmosphereDim;
+      ambient.intensity = 1.5 * THREE.MathUtils.lerp(1, 0.82, contentEase);
+      lightShaft.rotation.y = time * 0.08 * drift;
+      lightShaft.material.opacity = (0.028 + Math.sin(time * 0.9) * 0.008) * THREE.MathUtils.lerp(1, 0.52, contentEase);
+
+      floatingSheets.forEach((sheet, index) => {
+        sheet.mesh.rotation.z = time * sheet.speed + sheet.phase;
+        sheet.mesh.position.x = Math.sin(time * (sheet.speed * 0.7) + sheet.phase) * sheet.drift;
+        sheet.mesh.position.z = Math.cos(time * (sheet.speed * 0.6) + sheet.phase) * sheet.drift;
+        sheet.mesh.material.map.offset.x = time * sheet.speed * 0.03 + index * 0.08;
+        sheet.mesh.material.map.offset.y = time * sheet.speed * -0.025;
+        sheet.mesh.material.opacity = sheet.baseOpacity * THREE.MathUtils.lerp(1, 0.45, contentEase);
+      });
+
+      bubbles.forEach((field, index) => {
+        field.points.rotation.y = time * field.speed;
+        field.points.position.y = Math.sin(time * 0.22 + field.phase + index) * 0.18;
+        field.points.material.opacity = field.baseOpacity * THREE.MathUtils.lerp(1, 0.34, contentEase);
+      });
+
+      if (titleRig && titleFace) {
+        titleRig.position.set(
+          Math.sin(time * 0.42) * THREE.MathUtils.lerp(0.55, 0.28, heroEase),
+          1.1 + Math.sin(time * 1.05) * 0.12 + heroEase * 1.55,
+          -2.7 + Math.cos(time * 0.38) * 0.22 - heroEase * 2.6
+        );
+        camera.getWorldPosition(tempVecA);
+        titleFace.lookAt(tempVecA.x, titleRig.position.y, tempVecA.z);
+        titleFace.rotateX(-0.08 + Math.sin(time * 0.9) * 0.018);
+        titleFace.rotateY(Math.sin(time * 0.7) * 0.02);
+        titleFace.rotateZ(Math.sin(time * 0.8) * 0.028);
+        const titleScale = titleFitScale * THREE.MathUtils.lerp(1, 0.76, heroEase);
+        titleFace.scale.setScalar((1 + Math.sin(time * 1.25) * 0.012) * titleScale);
+
+        const pulse = 0.98 + Math.sin(time * 2.2) * 0.03 + Math.sin(time * 5.8 + 0.9) * 0.012;
+        const flicker = reducedMotion ? 1 : (Math.sin(time * 14.2 + 0.4) > 0.995 ? 0.9 : 1);
+        const neonLevel = pulse * flicker;
+        titleMaterial.opacity = THREE.MathUtils.lerp(1, 0.76, heroEase);
+        titleHalo.material.opacity = 0.34 * neonLevel * THREE.MathUtils.lerp(1, 0.26, heroEase);
+        titleLight.intensity = 8.2 * neonLevel * THREE.MathUtils.lerp(1, 0.3, heroEase);
+      }
+
+      backgroundSphere.rotation.y = time * 0.02 * drift;
+    }
+
+    const clock = new THREE.Clock();
+
+    function render() {
+      const dt = Math.min(clock.getDelta(), 0.04);
+      const time = clock.elapsedTime;
+      updateSurface(time);
+      updateCamera(dt, time);
+      animateAtmosphere(time);
+      animateOnions(dt, time);
+      renderer.render(scene, camera);
+      requestAnimationFrame(render);
+    }
+
+    window.addEventListener("scroll", updateScrollState, { passive: true });
+
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioCap));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      updateTitleFitScale();
+      updateScrollState();
+    });
+
+    render();
+  </script>
+</body>
+</html>
