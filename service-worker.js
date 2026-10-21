@@ -1,4 +1,4 @@
-const VERSION = "2026-06-23-centered-links";
+const VERSION = "2026-10-19-training-benchmark";
 const CACHE_PREFIX = "pickled-onion";
 const PRECACHE_CACHE = `${CACHE_PREFIX}-precache-${VERSION}`;
 const RUNTIME_CACHE = `${CACHE_PREFIX}-runtime-${VERSION}`;
@@ -15,19 +15,39 @@ const PRECACHE_URLS = [
   "/apple-touch-icon.png",
   "/icon-192.png",
   "/icon-512.png",
+  "/vendor/three.module.js",
+  "/piano/",
+  "/piano/index.html",
 ];
 
 const OPTIONAL_CACHE_URLS = [
-  "/piano",
-  "/piano/",
-  "/piano/index.html",
+  "/training",
+  "/training/",
+  "/training/index.html",
+  "/training/styles.css",
+  "/training/app.js?v=cycling-benchmark",
+  "/training/data.js?v=cycling-benchmark",
+  "/training/model.js?v=cycling-benchmark",
+  "/training/diagrams.js",
+  "/training/media.js",
   "/trains",
   "/trains/",
   "/trains/index.html",
   "/swim",
   "/swim/",
   "/swim/index.html",
-  "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+  "/crossstitch",
+  "/crossstitch/",
+  "/crossstitch/index.html",
+  "/map",
+  "/map/",
+  "/map/index.html",
+  "/map/styles.css",
+  "/map/app.js",
+  "/map/data/water-points.geojson",
+  "/map/data/surf-spots.geojson",
+  "/map/data/snorkelling-spots.geojson",
+  "/map/data/toilets.geojson",
   "https://fonts.googleapis.com/css2?family=Sacramento&family=Space+Grotesk:wght@400;500;700&display=swap",
 ];
 
@@ -145,6 +165,22 @@ async function cacheFirst(request) {
   return response;
 }
 
+async function networkFirst(request) {
+  let response;
+  try {
+    response = await fetch(request, { cache: "no-cache" });
+  } catch {
+    // Prefer the latest successful download over the installation's precache.
+    const runtimeCache = await caches.open(RUNTIME_CACHE);
+    return (await runtimeCache.match(request)) ||
+      (await caches.match(request)) || Response.error();
+  }
+
+  // A full or unavailable cache must not prevent a fresh response from loading.
+  await putInRuntimeCache(request, response).catch(() => {});
+  return response;
+}
+
 async function staleWhileRevalidate(request) {
   const cached = await caches.match(request);
   const network = fetch(request)
@@ -167,6 +203,14 @@ self.addEventListener("fetch", (event) => {
 
   if (request.mode === "navigate") {
     event.respondWith(handleNavigation(request));
+    return;
+  }
+
+  if (
+    url.origin === self.location.origin &&
+    (url.pathname.startsWith("/map/") || url.pathname.startsWith("/training/"))
+  ) {
+    event.respondWith(networkFirst(request));
     return;
   }
 

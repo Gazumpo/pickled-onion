@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grand Staff Trainer</title>
+    <style>
+      :root {
+        --bg-top: #f5efe6;
+        --bg-bottom: #e5d8c3;
+        --paper: rgba(255, 251, 245, 0.92);
+        --paper-strong: rgba(255, 248, 240, 0.97);
+        --ink: #2b221b;
+        --muted: #776659;
+        --accent: #ac5632;
+        --accent-strong: #8b3d1f;
+        --teal: #67cdbc;
+        --coral: #d87b72;
+        --good: #24794a;
+        --bad: #aa3d33;
+        --line: #524338;
+        --shadow: 0 20px 48px rgba(84, 58, 35, 0.14);
+        color-scheme: light;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        width: 100%;
+        min-height: 100svh;
+        padding: 12px 0 max(12px, env(safe-area-inset-bottom));
+        font-family: "Avenir Next", "Trebuchet MS", "Gill Sans", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(255, 255, 255, 0.72), transparent 32%),
+          radial-gradient(circle at 85% 18%, rgba(172, 86, 50, 0.12), transparent 24%),
+          linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+        display: flex;
+        justify-content: center;
+        overflow-x: hidden;
+      }
+
+      .app {
+        width: calc(100vw - 24px);
+        max-width: 430px;
+        align-self: flex-start;
+        background: var(--paper);
+        border: 1px solid rgba(82, 67, 56, 0.08);
+        border-radius: 26px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+      }
+
+      .hero {
+        position: relative;
+        padding: 8px 10px 0;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(244, 235, 223, 0.84)),
+          linear-gradient(180deg, rgba(172, 86, 50, 0.12), transparent);
+      }
+
+      .hero::after {
+        content: none;
+        position: absolute;
+        inset: auto -28px -36px auto;
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(172, 86, 50, 0.16), transparent 70%);
+        pointer-events: none;
+      }
+
+      .hero-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .answer-mode-control,
+      .landmark-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 9px;
+        border-radius: 999px;
+        background: rgba(255, 252, 247, 0.9);
+        border: 1px solid rgba(82, 67, 56, 0.12);
+      }
+
+      .answer-mode-control span,
+      .landmark-control span {
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+      }
+
+      .mode-options {
+        display: flex;
+        gap: 2px;
+        padding: 2px;
+        border-radius: 999px;
+        background: rgba(82, 67, 56, 0.08);
+      }
+
+      .mode-option {
+        min-width: 48px;
+        border: 0;
+        border-radius: 999px;
+        padding: 5px 8px;
+        color: var(--muted);
+        background: transparent;
+        font: inherit;
+        font-size: 0.78rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition:
+          background 140ms ease,
+          color 140ms ease,
+          box-shadow 140ms ease;
+      }
+
+      .mode-option.active {
+        color: #fff;
+        background: var(--accent);
+        box-shadow: 0 4px 10px rgba(172, 86, 50, 0.18);
+      }
+
+      .mode-option:focus-visible,
+      .switch:focus-visible,
+      .answer-button:focus-visible,
+      .piano-key:focus-visible {
+        outline: 3px solid rgba(103, 205, 188, 0.55);
+        outline-offset: 2px;
+      }
+
+      .switch {
+        appearance: none;
+        width: 40px;
+        height: 22px;
+        border-radius: 999px;
+        background: rgba(82, 67, 56, 0.22);
+        position: relative;
+        cursor: pointer;
+        transition: background 160ms ease;
+      }
+
+      .switch::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+        transition: transform 160ms ease;
+      }
+
+      .switch:checked {
+        background: rgba(172, 86, 50, 0.84);
+      }
+
+      .switch:checked::after {
+        transform: translateX(18px);
+      }
+
+      .main {
+        padding: 8px 10px 10px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .main > * {
+        min-width: 0;
+      }
+
+      .hud {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .hud-pill {
+        padding: 8px 10px;
+        border-radius: 13px;
+        background: rgba(255, 255, 255, 0.76);
+        border: 1px solid rgba(82, 67, 56, 0.08);
+      }
+
+      .hud-pill small {
+        display: block;
+        color: var(--muted);
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .hud-pill strong {
+        display: block;
+        margin-top: 4px;
+        font-size: 1.1rem;
+      }
+
+      .hud-pill.good strong {
+        color: var(--good);
+      }
+
+      .hud-pill.bad strong {
+        color: var(--bad);
+      }
+
+      .hud-pill.mode strong {
+        color: var(--accent-strong);
+        font-size: 1rem;
+      }
+
+      .staff-card {
+        padding: 8px 8px 6px;
+        border-radius: 22px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(247, 239, 229, 0.9));
+        border: 1px solid rgba(82, 67, 56, 0.08);
+      }
+
+      .staff-head {
+        display: flex;
+        align-items: baseline;
+        margin-bottom: 2px;
+      }
+
+      .staff-head h2 {
+        margin: 0;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+      }
+
+      .staff {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .answer-panel {
+        padding: 10px;
+        border-radius: 20px;
+        background:
+          linear-gradient(180deg, rgba(255, 251, 246, 0.98), rgba(248, 240, 229, 0.98));
+        border: 1px solid rgba(82, 67, 56, 0.08);
+        box-shadow: 0 10px 28px rgba(55, 39, 28, 0.08);
+      }
+
+      .answer-panel h3 {
+        margin: 0 0 8px;
+        font-size: 0.92rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+      }
+
+      .answer-buttons {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .answer-button {
+        border: 2px solid rgba(172, 86, 50, 0.2);
+        border-radius: 14px;
+        padding: 10px 0;
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.92);
+        cursor: pointer;
+        transition:
+          transform 140ms ease,
+          border-color 140ms ease,
+          background 140ms ease,
+          color 140ms ease;
+      }
+
+      .answer-button:active {
+        transform: scale(0.98);
+      }
+
+      .answer-button:disabled {
+        opacity: 0.72;
+        cursor: default;
+      }
+
+      .answer-button.good {
+        border-color: rgba(36, 121, 74, 0.8);
+        background: rgba(36, 121, 74, 0.12);
+        color: var(--good);
+      }
+
+      .answer-button.bad {
+        border-color: rgba(170, 61, 51, 0.82);
+        background: rgba(170, 61, 51, 0.12);
+        color: var(--bad);
+      }
+
+      .answer-button.filler {
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      .answer-buttons[hidden],
+      .piano-wrap[hidden] {
+        display: none;
+      }
+
+      .piano-scroll {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 6px;
+        scrollbar-width: thin;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .piano {
+        position: relative;
+        height: 96px;
+      }
+
+      .piano-key {
+        position: absolute;
+        top: 0;
+        border: 1px solid rgba(43, 34, 27, 0.32);
+        font: inherit;
+        cursor: pointer;
+        user-select: none;
+        touch-action: manipulation;
+        transition:
+          transform 120ms ease,
+          border-color 140ms ease,
+          background 140ms ease,
+          color 140ms ease,
+          box-shadow 140ms ease;
+      }
+
+      .piano-key.white {
+        z-index: 1;
+        height: 96px;
+        border-radius: 0 0 7px 7px;
+        color: var(--ink);
+        background:
+          linear-gradient(180deg, #fff 0%, #fbf6ef 64%, #eadcc9 100%);
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 0 0 6px;
+        font-size: 0.68rem;
+        font-weight: 800;
+      }
+
+      .piano-key.black {
+        z-index: 2;
+        height: 58px;
+        border-color: #1f1814;
+        border-radius: 0 0 6px 6px;
+        background:
+          linear-gradient(180deg, #342820 0%, #1f1814 70%, #100c0a 100%);
+        box-shadow: 0 4px 9px rgba(20, 12, 8, 0.28);
+        cursor: default;
+      }
+
+      .piano-key.white:active:not(:disabled) {
+        transform: translateY(1px);
+      }
+
+      .piano-key.white:disabled {
+        cursor: default;
+      }
+
+      .piano-key.white.good {
+        border-color: rgba(36, 121, 74, 0.9);
+        color: var(--good);
+        background:
+          linear-gradient(180deg, #fff 0%, rgba(36, 121, 74, 0.16) 100%);
+        box-shadow: inset 0 0 0 2px rgba(36, 121, 74, 0.2);
+      }
+
+      .piano-key.white.bad {
+        border-color: rgba(170, 61, 51, 0.9);
+        color: var(--bad);
+        background:
+          linear-gradient(180deg, #fff 0%, rgba(170, 61, 51, 0.16) 100%);
+        box-shadow: inset 0 0 0 2px rgba(170, 61, 51, 0.2);
+      }
+
+      .answer-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 8px;
+      }
+
+      .answer-clef {
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(172, 86, 50, 0.12);
+        color: var(--accent-strong);
+        font-size: 0.8rem;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .feedback {
+        min-height: 20px;
+        margin: 0;
+        font-size: 0.92rem;
+        font-weight: 700;
+        text-align: right;
+      }
+
+      .feedback.good {
+        color: var(--good);
+      }
+
+      .feedback.bad {
+        color: var(--bad);
+      }
+
+      .feedback.neutral {
+        color: var(--muted);
+      }
+
+      @media (max-width: 390px) {
+        .hud {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .hud-pill.mode {
+          grid-column: 1 / -1;
+        }
+
+        .landmark-control {
+          padding-inline: 9px;
+        }
+
+        .answer-buttons {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .answer-meta {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .feedback {
+          text-align: left;
+        }
+      }
+
+      @media (max-width: 360px) {
+        .landmark-control span {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+          clip: rect(0 0 0 0);
+          white-space: nowrap;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <section class="hero">
+        <div class="hero-row">
+          <div class="answer-mode-control" role="group" aria-label="Answer mode">
+            <div class="mode-options">
+              <button type="button" class="mode-option active" data-answer-mode="letters" aria-pressed="true">
+                Letters
+              </button>
+              <button type="button" class="mode-option" data-answer-mode="keys" aria-pressed="false">
+                Keys
+              </button>
+            </div>
+          </div>
+
+          <label class="landmark-control" for="landmarkToggle" aria-label="Show landmarks">
+            <span>Landmarks</span>
+            <input id="landmarkToggle" class="switch" type="checkbox" />
+          </label>
+        </div>
+      </section>
+
+      <section class="main">
+        <div class="hud" aria-label="Scoreboard">
+          <div class="hud-pill good">
+            <small>Correct</small>
+            <strong id="correctCount">0</strong>
+          </div>
+          <div class="hud-pill bad">
+            <small>Wrong</small>
+            <strong id="wrongCount">0</strong>
+          </div>
+          <div class="hud-pill mode">
+            <small>Current Staff</small>
+            <strong id="currentClefLabel">Treble</strong>
+          </div>
+        </div>
+
+        <div class="staff-card">
+          <div class="staff-head">
+            <h2>Current Note</h2>
+          </div>
+
+          <svg
+            id="staffSvg"
+            class="staff"
+            viewBox="0 0 360 300"
+            role="img"
+            aria-label="Grand staff showing a note to identify"
+          >
+            <g id="frameLayer"></g>
+            <g id="landmarksLayer"></g>
+            <g id="noteLayer"></g>
+          </svg>
+        </div>
+
+        <div class="answer-panel">
+          <h3 id="answerPanelTitle">Pick The Note Letter</h3>
+          <div id="answerButtons" class="answer-buttons" aria-label="Answer choices"></div>
+          <div id="pianoWrap" class="piano-wrap" hidden>
+            <div id="pianoScroll" class="piano-scroll" aria-label="Piano keyboard answers">
+              <div id="pianoKeyboard" class="piano" role="group"></div>
+            </div>
+          </div>
+          <div class="answer-meta">
+            <span id="answerClefBadge" class="answer-clef">Treble</span>
+            <p id="feedback" class="feedback neutral" aria-live="polite">Choose A to G.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const svgNs = "http://www.w3.org/2000/svg";
+      const staffMetrics = {
+        startX: 34,
+        endX: 238,
+        trebleX: 58,
+        bassX: 58,
+        braceX: 18,
+        landmarkX: 242,
+        landmarkTextX: 264,
+        noteX: 158
+      };
+
+      const notes = [
+        { id: "F2", letter: "F", y: 280, clef: "Bass", label: "Bass" },
+        { id: "G2", letter: "G", y: 268, clef: "Bass", label: "Bass" },
+        { id: "A2", letter: "A", y: 256, clef: "Bass", label: "Bass" },
+        { id: "B2", letter: "B", y: 244, clef: "Bass", label: "Bass" },
+        { id: "C3", letter: "C", y: 232, clef: "Bass", label: "Bass" },
+        { id: "D3", letter: "D", y: 220, clef: "Bass", label: "Bass" },
+        { id: "E3", letter: "E", y: 208, clef: "Bass", label: "Bass" },
+        { id: "F3", letter: "F", y: 196, clef: "Bass", label: "Bass" },
+        { id: "G3", letter: "G", y: 184, clef: "Bass", label: "Bass" },
+        { id: "A3", letter: "A", y: 172, clef: "Bass", label: "Bass" },
+        { id: "B3", letter: "B", y: 160, clef: "Bass", label: "Bass" },
+        { id: "C4", letter: "C", y: 148, clef: "Middle", label: "Middle C", ledgerLines: [148] },
+        { id: "D4", letter: "D", y: 136, clef: "Treble", label: "Treble" },
+        { id: "E4", letter: "E", y: 124, clef: "Treble", label: "Treble" },
+        { id: "F4", letter: "F", y: 112, clef: "Treble", label: "Treble" },
+        { id: "G4", letter: "G", y: 100, clef: "Treble", label: "Treble" },
+        { id: "A4", letter: "A", y: 88, clef: "Treble", label: "Treble" },
+        { id: "B4", letter: "B", y: 76, clef: "Treble", label: "Treble" },
+        { id: "C5", letter: "C", y: 64, clef: "Treble", label: "Treble" },
+        { id: "D5", letter: "D", y: 52, clef: "Treble", label: "Treble" },
+        { id: "E5", letter: "E", y: 40, clef: "Treble", label: "Treble" },
+        { id: "F5", letter: "F", y: 28, clef: "Treble", label: "Treble" },
+        { id: "G5", letter: "G", y: 16, clef: "Treble", label: "Treble" }
+      ];
+
+      const landmarks = [
+        { id: "high-g", text: "High G", y: 16, color: "#67cdbc", textColor: "#2b221b" },
+        { id: "high-c", text: "High C", y: 64, color: "#67cdbc", textColor: "#2b221b" },
+        { id: "low-g", text: "Low G", y: 100, color: "#67cdbc", textColor: "#2b221b" },
+        { id: "middle-c", text: "Middle C", y: 148, color: "#d87b72", textColor: "#c46b63", ledgerLines: [148] },
+        { id: "high-f", text: "High F", y: 196, color: "#67cdbc", textColor: "#2b221b" },
+        { id: "low-c", text: "Low C", y: 232, color: "#67cdbc", textColor: "#2b221b" },
+        { id: "low-f", text: "Low F", y: 280, color: "#67cdbc", textColor: "#2b221b" }
+      ];
+
+      const state = {
+        currentNote: null,
+        correct: 0,
+        wrong: 0,
+        showLandmarks: false,
+        answerMode: "letters",
+        answerLocked: false,
+        advanceTimer: null
+      };
+
+      const frameLayer = document.getElementById("frameLayer");
+      const landmarksLayer = document.getElementById("landmarksLayer");
+      const noteLayer = document.getElementById("noteLayer");
+      const correctCount = document.getElementById("correctCount");
+      const wrongCount = document.getElementById("wrongCount");
+      const currentClefLabel = document.getElementById("currentClefLabel");
+      const answerButtons = document.getElementById("answerButtons");
+      const answerPanelTitle = document.getElementById("answerPanelTitle");
+      const answerModeButtons = document.querySelectorAll("[data-answer-mode]");
+      const answerClefBadge = document.getElementById("answerClefBadge");
+      const feedback = document.getElementById("feedback");
+      const landmarkToggle = document.getElementById("landmarkToggle");
+      const pianoWrap = document.getElementById("pianoWrap");
+      const pianoKeyboard = document.getElementById("pianoKeyboard");
+      const answerLetters = ["A", "B", "C", "D", "E", "F", "G"];
+      const semitoneNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+      const answerableNoteIds = new Set(notes.map((note) => note.id));
+      const whiteKeyWidth = 24;
+      const blackKeyWidth = 15;
+      const correctAnswerAdvanceDelay = 900;
+      const wrongAnswerReviewDelay = 2200;
+
+      function createSvg(tag, attributes = {}) {
+        const element = document.createElementNS(svgNs, tag);
+        Object.entries(attributes).forEach(([name, value]) => {
+          element.setAttribute(name, value);
+        });
+        return element;
+      }
+
+      function appendStaffLine(y) {
+        frameLayer.append(
+          createSvg("line", {
+            x1: String(staffMetrics.startX),
+            x2: String(staffMetrics.endX),
+            y1: String(y),
+            y2: String(y),
+            stroke: "#524338",
+            "stroke-width": "1.8",
+            "stroke-linecap": "round"
+          })
+        );
+      }
+
+      function drawLedgerLines(targetLayer, ledgerLines, x, color, width = 28, opacity = "1") {
+        (ledgerLines || []).forEach((y) => {
+          targetLayer.append(
+            createSvg("line", {
+              x1: String(x - width / 2),
+              x2: String(x + width / 2),
+              y1: String(y),
+              y2: String(y),
+              stroke: color,
+              "stroke-width": "2",
+              "stroke-linecap": "round",
+              opacity
+            })
+          );
+        });
+      }
+
+      function drawFrame() {
+        frameLayer.innerHTML = "";
+
+        [28, 52, 76, 100, 124, 172, 196, 220, 244, 268].forEach(appendStaffLine);
+
+        frameLayer.append(
+          createSvg("path", {
+            d: "M 18 20 C 6 30 6 62 18 76 C 26 86 26 108 16 118 C 6 128 6 166 18 182 C 28 196 28 232 16 276",
+            fill: "none",
+            stroke: "#2b221b",
+            "stroke-width": "2.4",
+            "stroke-linecap": "round"
+          })
+        );
+
+        frameLayer.append(
+          createSvg("text", {
+            x: String(staffMetrics.trebleX),
+            y: "108",
+            "font-family": '"Noto Music", "Segoe UI Symbol", "Apple Symbols", serif',
+            "font-size": "84",
+            fill: "#8b3d1f"
+          })
+        );
+        frameLayer.lastChild.textContent = "\uD834\uDD1E";
+
+        frameLayer.append(
+          createSvg("text", {
+            x: String(staffMetrics.bassX),
+            y: "238",
+            "font-family": '"Noto Music", "Segoe UI Symbol", "Apple Symbols", serif',
+            "font-size": "68",
+            fill: "#8b3d1f"
+          })
+        );
+        frameLayer.lastChild.textContent = "\uD834\uDD22";
+      }
+
+      function drawLandmarks() {
+        landmarksLayer.innerHTML = "";
+
+        if (!state.showLandmarks) {
+          return;
+        }
+
+        landmarks.forEach((landmark) => {
+          drawLedgerLines(landmarksLayer, landmark.ledgerLines, staffMetrics.landmarkX, landmark.color, 32, "0.9");
+
+          landmarksLayer.append(
+            createSvg("ellipse", {
+              cx: String(staffMetrics.landmarkX),
+              cy: String(landmark.y),
+              rx: "14",
+              ry: "12",
+              transform: `rotate(-18 ${staffMetrics.landmarkX} ${landmark.y})`,
+              fill: "rgba(255, 255, 255, 0.8)",
+              stroke: landmark.id === "middle-c" ? "#d87b72" : "#2b221b",
+              "stroke-width": landmark.id === "middle-c" ? "2" : "1.8"
+            })
+          );
+
+          landmarksLayer.append(
+            createSvg("text", {
+              x: String(staffMetrics.landmarkTextX),
+              y: String(landmark.y + 4),
+              "font-size": landmark.id === "middle-c" ? "13.5" : "12.5",
+              "font-weight": landmark.id === "middle-c" ? "800" : "700",
+              "font-family": '"Trebuchet MS", "Avenir Next", sans-serif',
+              fill: landmark.textColor
+            })
+          );
+          landmarksLayer.lastChild.textContent = landmark.text;
+        });
+      }
+
+      function getStemDirection(note) {
+        if (note.clef === "Bass") {
+          return note.y > 220;
+        }
+
+        if (note.clef === "Middle") {
+          return true;
+        }
+
+        return note.y > 76;
+      }
+
+      function drawCurrentNote() {
+        noteLayer.innerHTML = "";
+
+        if (!state.currentNote) {
+          return;
+        }
+
+        const x = staffMetrics.noteX;
+        const stemUp = getStemDirection(state.currentNote);
+        const noteColor = "#2b221b";
+
+        drawLedgerLines(noteLayer, state.currentNote.ledgerLines, x, noteColor, 34);
+
+        noteLayer.append(
+          createSvg("ellipse", {
+            cx: String(x),
+            cy: String(state.currentNote.y),
+            rx: "14",
+            ry: "12",
+            transform: `rotate(-18 ${x} ${state.currentNote.y})`,
+            fill: noteColor
+          })
+        );
+
+        noteLayer.append(
+          createSvg("line", {
+            x1: String(stemUp ? x + 11 : x - 11),
+            y1: String(state.currentNote.y),
+            x2: String(stemUp ? x + 11 : x - 11),
+            y2: String(stemUp ? state.currentNote.y - 42 : state.currentNote.y + 42),
+            stroke: noteColor,
+            "stroke-width": "2.2",
+            "stroke-linecap": "round"
+          })
+        );
+      }
+
+      function setFeedback(text, tone) {
+        feedback.textContent = text;
+        feedback.className = `feedback ${tone}`;
+      }
+
+      function getNeutralFeedback() {
+        return state.answerMode === "keys" ? "Choose the matching key." : "Choose A to G.";
+      }
+
+      function setAnswerButtonsState(tone, selectedLetter = "", correctLetter = "") {
+        const buttons = answerButtons.querySelectorAll(".answer-button[data-letter]");
+        buttons.forEach((button) => {
+          button.classList.remove("good", "bad");
+          if (correctLetter && button.dataset.letter === correctLetter) {
+            button.classList.add("good");
+          }
+          if (selectedLetter && button.dataset.letter === selectedLetter) {
+            button.classList.add(tone);
+          }
+        });
+      }
+
+      function setPianoKeysState(tone, selectedNote = "", correctNote = "") {
+        const keys = pianoKeyboard.querySelectorAll(".piano-key.white[data-note]");
+        keys.forEach((key) => {
+          key.classList.remove("good", "bad");
+          if (correctNote && key.dataset.note === correctNote) {
+            key.classList.add("good");
+          }
+          if (selectedNote && key.dataset.note === selectedNote) {
+            key.classList.add(tone);
+          }
+        });
+      }
+
+      function setAnswerButtonsDisabled(disabled) {
+        const buttons = answerButtons.querySelectorAll(".answer-button[data-letter]");
+        buttons.forEach((button) => {
+          button.disabled = disabled;
+        });
+      }
+
+      function setPianoKeysDisabled(disabled) {
+        const keys = pianoKeyboard.querySelectorAll(".piano-key.white[data-note]");
+        keys.forEach((key) => {
+          key.disabled = disabled || !answerableNoteIds.has(key.dataset.note);
+        });
+      }
+
+      function setAnswerControlsDisabled(disabled) {
+        setAnswerButtonsDisabled(disabled);
+        setPianoKeysDisabled(disabled);
+      }
+
+      function clearAnswerStates() {
+        setAnswerButtonsState("good", "");
+        setPianoKeysState("good", "");
+      }
+
+      function updateHud() {
+        correctCount.textContent = String(state.correct);
+        wrongCount.textContent = String(state.wrong);
+        currentClefLabel.textContent = state.currentNote ? state.currentNote.label : "Treble";
+        answerClefBadge.textContent = state.currentNote ? state.currentNote.label : "Treble";
+      }
+
+      function noteToMidi(noteId) {
+        const match = noteId.match(/^([A-G])(#?)(-?\d+)$/);
+        if (!match) {
+          return 0;
+        }
+
+        const [, letter, accidental, octaveText] = match;
+        const name = `${letter}${accidental}`;
+        return (Number(octaveText) + 1) * 12 + semitoneNames.indexOf(name);
+      }
+
+      function midiToNote(midi) {
+        const name = semitoneNames[((midi % 12) + 12) % 12];
+        const octave = Math.floor(midi / 12) - 1;
+        return `${name}${octave}`;
+      }
+
+      function buildAnswerButtons() {
+        answerButtons.innerHTML = "";
+
+        answerLetters.forEach((letter) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "answer-button";
+          button.dataset.letter = letter;
+          button.textContent = letter;
+          button.setAttribute("aria-label", `Answer ${letter}`);
+          answerButtons.append(button);
+        });
+
+        const filler = document.createElement("button");
+        filler.type = "button";
+        filler.className = "answer-button filler";
+        filler.tabIndex = -1;
+        filler.setAttribute("aria-hidden", "true");
+        answerButtons.append(filler);
+      }
+
+      function buildPianoKeyboard() {
+        pianoKeyboard.innerHTML = "";
+
+        const keyboardNotes = [];
+        for (let midi = noteToMidi("F2"); midi <= noteToMidi("G5"); midi += 1) {
+          keyboardNotes.push(midiToNote(midi));
+        }
+
+        const whiteCount = keyboardNotes.filter((noteId) => !noteId.includes("#")).length;
+        pianoKeyboard.style.width = `${whiteCount * whiteKeyWidth}px`;
+
+        let whiteIndex = -1;
+        keyboardNotes.forEach((noteId) => {
+          const isBlack = noteId.includes("#");
+          const key = document.createElement("button");
+          key.type = "button";
+          key.className = `piano-key ${isBlack ? "black" : "white"}`;
+          key.dataset.note = noteId;
+
+          if (isBlack) {
+            key.disabled = true;
+            key.tabIndex = -1;
+            key.setAttribute("aria-hidden", "true");
+            key.style.left = `${(whiteIndex + 1) * whiteKeyWidth - blackKeyWidth / 2}px`;
+            key.style.width = `${blackKeyWidth}px`;
+          } else {
+            whiteIndex += 1;
+            key.textContent = noteId === "C4" ? "C4" : "";
+            key.setAttribute("aria-label", `Answer ${noteId}`);
+            key.style.left = `${whiteIndex * whiteKeyWidth}px`;
+            key.style.width = `${whiteKeyWidth}px`;
+          }
+
+          pianoKeyboard.append(key);
+        });
+      }
+
+      function updateAnswerMode(mode) {
+        state.answerMode = mode;
+
+        answerModeButtons.forEach((button) => {
+          const active = button.dataset.answerMode === mode;
+          button.classList.toggle("active", active);
+          button.setAttribute("aria-pressed", String(active));
+        });
+
+        const keysMode = mode === "keys";
+        answerPanelTitle.textContent = keysMode ? "Pick The Piano Key" : "Pick The Note Letter";
+        answerButtons.hidden = keysMode;
+        pianoWrap.hidden = !keysMode;
+
+        if (!state.answerLocked) {
+          clearAnswerStates();
+          setFeedback(getNeutralFeedback(), "neutral");
+          setAnswerControlsDisabled(false);
+        }
+      }
+
+      function chooseNextNote() {
+        const previousId = state.currentNote?.id;
+        let next = notes[Math.floor(Math.random() * notes.length)];
+
+        while (notes.length > 1 && next.id === previousId) {
+          next = notes[Math.floor(Math.random() * notes.length)];
+        }
+
+        return next;
+      }
+
+      function nextNote() {
+        window.clearTimeout(state.advanceTimer);
+        state.currentNote = chooseNextNote();
+        state.answerLocked = false;
+        setAnswerControlsDisabled(false);
+        clearAnswerStates();
+        setFeedback(getNeutralFeedback(), "neutral");
+        updateHud();
+        drawCurrentNote();
+      }
+
+      function scoreAnswer(answer) {
+        if (!state.currentNote || state.answerLocked) {
+          return;
+        }
+
+        state.answerLocked = true;
+        setAnswerControlsDisabled(true);
+        const expected = state.answerMode === "keys" ? state.currentNote.id : state.currentNote.letter;
+        const correct = answer === expected;
+
+        if (correct) {
+          state.correct += 1;
+          state.answerMode === "keys" ? setPianoKeysState("good", answer) : setAnswerButtonsState("good", answer);
+          setFeedback(`Correct: ${expected}`, "good");
+        } else {
+          state.wrong += 1;
+          state.answerMode === "keys"
+            ? setPianoKeysState("bad", answer, expected)
+            : setAnswerButtonsState("bad", answer, expected);
+          setFeedback(`Wrong: ${expected}`, "bad");
+        }
+
+        updateHud();
+        state.advanceTimer = window.setTimeout(nextNote, correct ? correctAnswerAdvanceDelay : wrongAnswerReviewDelay);
+      }
+
+      landmarkToggle.addEventListener("change", (event) => {
+        state.showLandmarks = event.target.checked;
+        drawLandmarks();
+      });
+
+      answerModeButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          updateAnswerMode(button.dataset.answerMode);
+        });
+      });
+
+      answerButtons.addEventListener("click", (event) => {
+        const button = event.target.closest(".answer-button[data-letter]");
+        if (!button || button.disabled) {
+          return;
+        }
+
+        scoreAnswer(button.dataset.letter);
+      });
+
+      pianoKeyboard.addEventListener("click", (event) => {
+        const key = event.target.closest(".piano-key.white[data-note]");
+        if (!key || key.disabled || state.answerMode !== "keys") {
+          return;
+        }
+
+        scoreAnswer(key.dataset.note);
+      });
+
+      buildAnswerButtons();
+      buildPianoKeyboard();
+      updateAnswerMode("letters");
+      drawFrame();
+      drawLandmarks();
+      updateHud();
+      nextNote();
+    </script>
+  </body>
+</html>
